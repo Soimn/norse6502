@@ -1,0 +1,71 @@
+visual6502 and perfect6502 differ in behaviour when it comes to calculating node values
+
+visual6502 returns true if high node is encountered before pulldown:
+	function getNodeValue(){
+		if(arrayContains(group, ngnd)) return false;
+		if(arrayContains(group, npwr)) return true;
+		for(var i in group){
+			var nn = group[i];
+			var n = nodes[nn];
+			if(n.pullup) return true;
+			if(n.pulldown) return false;
+			if(n.state) return true;
+		}
+		return false;
+	}
+
+perfect6502 returns false if high node is encountered before pulldown:
+
+	enum
+	{
+		contains_nothing,
+		contains_hi,
+		contains_pullup,
+		contains_pulldown,
+		contains_vcc,
+		contains_vss
+	} group_contains_value;
+
+	static inline void
+	addNodeToGroup(state_t *state, nodenum_t n)
+	{
+		/*
+		 * We need to stop at vss and vcc, otherwise we'll revisit other groups
+		 * with the same value - just because they all derive their value from
+		 * the fact that they are connected to vcc or vss.
+		 */
+		if (n == state->vss) {
+			state->group_contains_value = contains_vss;
+			return;
+		}
+		if (n == state->vcc) {
+			if (state->group_contains_value != contains_vss)
+				state->group_contains_value = contains_vcc;
+			return;
+		}
+		
+		if (group_contains(state, n))
+			return;
+		
+		group_add(state, n);
+		
+		if (state->group_contains_value < contains_pulldown && get_nodes_pulldown(state, n)) {
+			state->group_contains_value = contains_pulldown;
+		}
+		if (state->group_contains_value < contains_pullup && get_nodes_pullup(state, n)) {
+			state->group_contains_value = contains_pullup;
+		}
+		if (state->group_contains_value < contains_hi && get_nodes_value(state, n)) {
+			state->group_contains_value = contains_hi;
+		}
+		
+		/* revisit all transistors that control this node */
+		count_t end = state->nodes_c1c2offset[n+1];
+		for (count_t t = state->nodes_c1c2offset[n]; t < end; t++) {
+			c1c2_t c = state->nodes_c1c2s[t];
+			/* if the transistor connects c1 and c2... */
+			if (get_transistors_on(state, c.transistor)) {
+				addNodeToGroup(state, c.other_node);
+			}
+		}
+	}
