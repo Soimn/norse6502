@@ -229,7 +229,171 @@ RunTestProgram :: proc()
 	fmt.println("Done");
 }
 
+INCOMING_LINE :: enum netlist_sim.Node_ID
+{
+	RESG,
+	INTG,
+	PD0,
+	PD1,
+	PD2,
+	PD3,
+	PD4,
+	PD5,
+	PD6,
+	PD7,
+	P0,
+	P1,
+	P2,
+	P3,
+	P4,
+	P6,
+	P7,
+	// pos, nocr, sd1, sd2, cs, i/v
+	RDY,
+	SO,
+}
+
+IncomingLineNameMap := map[INCOMING_LINE]netlist_sim.Node_ID{
+	.RESG = netlist_sim.NodeNameMap["RESG"],
+	.INTG = netlist_sim.NodeNameMap["INTG"],
+	.PD0  = netlist_sim.NodeNameMap["pd0"],
+	.PD1  = netlist_sim.NodeNameMap["pd1"],
+	.PD2  = netlist_sim.NodeNameMap["pd2"],
+	.PD3  = netlist_sim.NodeNameMap["pd3"],
+	.PD4  = netlist_sim.NodeNameMap["pd4"],
+	.PD5  = netlist_sim.NodeNameMap["pd5"],
+	.PD6  = netlist_sim.NodeNameMap["pd6"],
+	.PD7  = netlist_sim.NodeNameMap["pd7"],
+	.P0   = netlist_sim.NodeNameMap["p0"],
+	.P1   = netlist_sim.NodeNameMap["p1"],
+	.P2   = netlist_sim.NodeNameMap["p2"],
+	.P3   = netlist_sim.NodeNameMap["p3"],
+	.P4   = netlist_sim.NodeNameMap["p4"],
+	.P6   = netlist_sim.NodeNameMap["p6"],
+	.P7   = netlist_sim.NodeNameMap["p7"],
+	.RDY  = netlist_sim.NodeNameMap["rdy"],
+	.SO   = netlist_sim.NodeNameMap["so"],
+};
+
+OUTGOING_LINE :: enum netlist_sim.Node_ID
+{
+	DL_DB,
+	DL_ADL,
+	DL_ADH,
+	Z_ADH0,
+	Z_ADH17,
+	ADH_ABH,
+	ADL_ABL,
+	PCL_PCL,
+	ADL_PCL,
+	I_PC,
+	PCL_DB,
+	PCL_ADL,
+	PCH_PCH,
+	ADH_PCH,
+	PCH_DB,
+	PCH_ADH,
+	SB_ADH,
+	SB_DB,
+	Z_ADL0,
+	Z_ADL1,
+	Z_ADL2,
+	S_ADL,
+	SB_S,
+	S_S,
+	S_SB,
+	NOTDB_ADD,
+	DB_ADD,
+	ADL_ADD,
+	// 1/ADDC
+	DAA,
+	DSA,
+	SUMS,
+	ANDS,
+	EORS,
+	ORS,
+	SRS,
+	ADD_ADL,
+	ADD_SB06,
+	ADD_SB7,
+	Z_ADD,
+	SB_ADD,
+	SB_AC,
+	AC_DB,
+	AC_SB,
+	SB_X,
+	X_SB,
+	SB_Y,
+	Y_SB,
+	// P/DB
+	// DB0/C
+	// IR5/C
+	// ACR/C
+	// DB1/Z
+	// DBZ/Z
+	// DB2/I
+	// IR5/I
+	// DB3/D
+	// IR5/D
+	// DB6/V
+	// AVR/V
+	// I/V
+	// DB7/N
+}
+
+// "ir5", "notir5"
+
+OutgoingLineNameMap := map[OUTGOING_LINE]netlist_sim.Node_ID{
+	.DL_DB     = netlist_sim.NodeNameMap["dpc43_DL/DB"],
+	.DL_ADL    = netlist_sim.NodeNameMap["dpc41_DL/ADL"],
+	.DL_ADH    = netlist_sim.NodeNameMap["dpc42_DL/ADH"],
+	.Z_ADH0    = netlist_sim.NodeNameMap["dpc28_0ADH0"],
+	.Z_ADH17   = netlist_sim.NodeNameMap["dpc29_0ADH17"],
+	.ADH_ABH   = netlist_sim.NodeNameMap["dpc-2_ADH/ABH"],
+	.ADL_ABL   = netlist_sim.NodeNameMap["dpc-1_ADL/ABL"],
+	.PCL_PCL   = netlist_sim.NodeNameMap["dpc39_PCLPCL"],
+	.ADL_PCL   = netlist_sim.NodeNameMap["dpc40_ADLPCL"],
+	.I_PC      = netlist_sim.NodeNameMap["dpc36_#IPC"],
+	.PCL_DB    = netlist_sim.NodeNameMap["dpc37_PCLDB"],
+	.PCL_ADL   = netlist_sim.NodeNameMap["dpc38_PCLADL"],
+	.PCH_PCH   = netlist_sim.NodeNameMap["dpc31_PCHPCH"],
+	.ADH_PCH   = netlist_sim.NodeNameMap["dpc30_ADHPCH"],
+	.PCH_DB    = netlist_sim.NodeNameMap["dpc33_PCHDB"],
+	.PCH_ADH   = netlist_sim.NodeNameMap["dpc32_PCHADH"],
+	.SB_ADH    = netlist_sim.NodeNameMap["dpc27_SBADH"],
+	.SB_DB     = netlist_sim.NodeNameMap["dpc25_SBDB"],
+	.Z_ADL0    = netlist_sim.NodeNameMap["0/ADL0"],
+	.Z_ADL1    = netlist_sim.NodeNameMap["0/ADL1"],
+	.Z_ADL2    = netlist_sim.NodeNameMap["0/ADL2"],
+	.S_ADL     = netlist_sim.NodeNameMap["dpc5_SADL"],
+	.SB_S      = netlist_sim.NodeNameMap["dpc6_SBS"],
+	.S_S       = netlist_sim.NodeNameMap["dpc7_SS"],
+	.S_SB      = netlist_sim.NodeNameMap["dpc4_SSB"],
+	.NOTDB_ADD = netlist_sim.NodeNameMap["dpc8_nDBADD"],
+	.DB_ADD    = netlist_sim.NodeNameMap["dpc9_DBADD"],
+	.ADL_ADD   = netlist_sim.NodeNameMap["dpc10_ADLADD"],
+
+	.DAA       = netlist_sim.NodeNameMap["dpc18_#DAA"],
+	.DSA       = netlist_sim.NodeNameMap["dpc22_#DSA"],
+	.SUMS      = netlist_sim.NodeNameMap["dpc17_SUMS"],
+	.ANDS      = netlist_sim.NodeNameMap["dpc15_ANDS"],
+	.EORS      = netlist_sim.NodeNameMap["dpc16_EORS"],
+	.ORS       = netlist_sim.NodeNameMap["dpc13_ORS"],
+	.SRS       = netlist_sim.NodeNameMap["dpc14_SRS"],
+	.ADD_ADL   = netlist_sim.NodeNameMap["dpc21_ADDADL"],
+	.ADD_SB06  = netlist_sim.NodeNameMap["dpc20_ADDSB06"],
+	.ADD_SB7   = netlist_sim.NodeNameMap["dpc19_ADDSB7"],
+	.Z_ADD     = netlist_sim.NodeNameMap["dpc12_0ADD"],
+	.SB_ADD    = netlist_sim.NodeNameMap["dpc11_SBADD"],
+	.SB_AC     = netlist_sim.NodeNameMap["dpc23_SBAC"],
+	.AC_DB     = netlist_sim.NodeNameMap["dpc26_ACDB"],
+	.AC_SB     = netlist_sim.NodeNameMap["dpc24_ACSB"],
+	.SB_X      = netlist_sim.NodeNameMap["dpc3_SBX"],
+	.X_SB      = netlist_sim.NodeNameMap["dpc2_XSB"],
+	.SB_Y      = netlist_sim.NodeNameMap["dpc1_SBY"],
+	.Y_SB      = netlist_sim.NodeNameMap["dpc0_YSB"],
+};
+
 main :: proc()
 {
-	RunTestProgram();
 }

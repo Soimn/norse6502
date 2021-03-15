@@ -287,10 +287,8 @@ ChunkedBitSet_GetIndexOfNextSetBit :: proc(set: Chunked_Bit_Set, prev_index := -
 	else                                do return result;
 }
 
-@private Node_ID       :: distinct int;
 @private Transistor_ID :: distinct int;
 
-@private
 Node :: struct
 {
 	id: Node_ID,
@@ -311,7 +309,6 @@ Transistor :: struct
 	c2: Node_ID
 }
 
-@private
 Processor_State :: struct
 {
 	nodes: []Node,
@@ -536,6 +533,8 @@ ReadByte :: proc(state: Processor_State, node_ids: ..Node_ID) -> u8
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 */
+
+Node_ID :: distinct int;
 
 NodeNameMap := map[string]Node_ID{
 	"Pout5"                    = cast(Node_ID) -1,
@@ -1805,7 +1804,6 @@ y5              :: cast(Node_ID) 615;
 y6              :: cast(Node_ID) 115;
 y7              :: cast(Node_ID) 843;
 
-@private
 TransistorDefinitions := [][3]int{
 	0    = [3]int{357, 558, 217},
 	1    = [3]int{1608, 657, 349},
@@ -5330,7 +5328,6 @@ TransistorDefinitions := [][3]int{
  for original source material:  www.visual6502.org
 */
 
-@private
 NodeDefinitions := []u8{
 	0    = '+',
 	1    = '-',
